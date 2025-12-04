@@ -15,7 +15,15 @@ const server = http.createServer(app);
 
 // Middlewares
 app.use(helmet());
-app.use(cors());
+
+app.use(cors({
+  origin: [
+    "https://frontendchat-five.vercel.app", 
+    "https://frontendchat-git-master-learnevolutions-projects.vercel.app",
+    "http://localhost:5173"
+  ],
+  methods: ["GET", "POST", "PUT", "DELETE"]
+}));
 app.use(express.json());
 
 // Rotas da API
