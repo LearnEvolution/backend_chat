@@ -1,12 +1,15 @@
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-import http from "http";
-import { Server } from "socket.io";
-import connectDB from "./config/db.js";
-import authRoutes from "./routes/authRoutes.js";
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
+const http = require("http");
+const { Server } = require("socket.io");
 
 dotenv.config();
+
+const connectDB = require("./config/db");
+const authRoutes = require("./routes/auth");
+
+// conecta MongoDB
 connectDB();
 
 const app = express();
@@ -28,7 +31,7 @@ const io = new Server(server, {
   transports: ["websocket", "polling"],
 });
 
-// autenticação do socket
+// autenticação
 io.use((socket, next) => {
   const token = socket.handshake.query.token;
 
@@ -37,7 +40,7 @@ io.use((socket, next) => {
     return next(new Error("NO_TOKEN"));
   }
 
-  socket.userId = token; // TEMPORÁRIO, só pra funcionar
+  socket.userId = token; // provisório
   next();
 });
 
@@ -59,7 +62,6 @@ io.on("connection", (socket) => {
   });
 });
 
-// início
 const PORT = process.env.PORT || 10000;
 server.listen(PORT, () => {
   console.log("🔥 Backend rodando na porta", PORT);
