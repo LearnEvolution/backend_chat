@@ -1,16 +1,18 @@
-const express = require("express");
-const cors = require("cors");
-const mongoose = require("mongoose");
-require("dotenv").config();
+import express from "express";
+import cors from "cors";
+import mongoose from "mongoose";
+import dotenv from "dotenv";
 
-const authRoutes = require("./routes/auth");
-const userRoutes = require("./routes/users");
-const clienteRoutes = require("./routes/clienteRoutes");
-const messageRoutes = require("./routes/messages");
+import authRoutes from "./routes/auth.js";
+import userRoutes from "./routes/users.js";
+import clienteRoutes from "./routes/clienteRoutes.js";
+import messageRoutes from "./routes/messages.js";
+
+dotenv.config();
 
 const app = express();
 
-// 💥 CORS LIBERADO – ACEITA QUALQUER FRONTEND
+// 💥 CORS LIBERADO PARA TODOS OS FRONTENDS
 app.use(cors({
 origin: "*",
 methods: ["GET", "POST", "PUT", "DELETE"],
@@ -25,13 +27,11 @@ app.use("/users", userRoutes);
 app.use("/clientes", clienteRoutes);
 app.use("/messages", messageRoutes);
 
-// CONEXÃO MONGO
+// DATABASE
 mongoose.connect(process.env.MONGO_URI)
 .then(() => console.log("✅ MongoDB conectado"))
-.catch(err => console.error("❌ Erro ao conectar MongoDB:", err));
+.catch((err) => console.log("❌ Erro ao conectar Mongo:", err));
 
-// SERVIDOR
+// SERVER
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
-console.log("🔥 Backend rodando na porta: ${PORT}");
-});
+app.listen(PORT, () => console.log("🔥 Backend rodando na porta ${PORT}"));
