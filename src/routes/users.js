@@ -1,16 +1,20 @@
-const express = require("express");
-const User = require("../models/User");
+import express from "express";
+import User from "../models/User.js";
+import authMiddleware from "../middlewares/auth.js";
 
 const router = express.Router();
 
-router.get("/", async (req, res) => {
+// Retorna TODOS os usuários, exceto o próprio usuário logado
+router.get("/", authMiddleware, async (req, res) => {
   try {
-    const users = await User.find().select("-password");
+    const users = await User.find({ _id: { $ne: req.user.id } })
+      .select("_id name email");
+
     res.json(users);
   } catch (err) {
-    console.error(err);
-    res.status(500).json({ message: "Erro ao listar usuários" });
+    console.log(err);
+    res.status(500).json({ error: "Erro ao buscar usuários" });
   }
 });
 
-module.exports = router;
+export default router;
