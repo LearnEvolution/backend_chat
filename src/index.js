@@ -26,63 +26,62 @@ app.use("/users", userRoutes);
 app.use("/messages", messageRoutes);
 app.use("/clientes", clienteRoutes);
 
+// Servidor HTTP
 const server = http.createServer(app);
 
 // SOCKET.IO
 const io = new Server(server, {
-cors: {
-origin: "*",
-methods: ["GET", "POST"]
-}
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"]
+  }
 });
 
-// AUTENTICAÇÃO DO SOCKET (agora decodifica o JWT de verdade!)
+// AUTENTICAÇÃO DO SOCKET (decodifica JWT corretamente)
 io.use((socket, next) => {
-const token = socket.handshake.query.token;
+  const token = socket.handshake.query.token;
 
-if (!token) return next(new Error("NO_TOKEN"));
+  if (!token) return next(new Error("NO_TOKEN"));
 
-try {
-const decoded = jwt.verify(token, process.env.JWT_SECRET);
-socket.userId = decoded.id; // agora é o ID correto do MongoDB
-next();
-} catch (err) {
-return next(new Error("INVALID_TOKEN"));
-}
+  try {
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    socket.userId = decoded.id;
+    next();
+  } catch (err) {
+    return next(new Error("INVALID_TOKEN"));
+  }
 });
 
 // CONEXÃO SOCKET.IO
 io.on("connection", (socket) => {
-console.log("🔥 Usuário conectado:", socket.userId);
+  console.log("🔥 Usuário conectado:", socket.userId);
 
-socket.join(socket.userId);
+  socket.join(socket.userId);
 
-// Receber e salvar mensagens
-socket.on("private_message", async ({ to, text }) => {
-console.log("📩 Mensagem recebida:", text);
+  // Receber e salvar mensagens privadas
+  socket.on("private_message", async ({ to, text }) => {
+    console.log("📩 Mensagem recebida:", text);
 
-// salva no banco
-const msg = await Message.create({
-  from: socket.userId,
-  to,
-  text
+    const msg = await Message.create({
+      from: socket.userId,
+      to,
+      text
+    });
+
+    // Enviar ao destinatário
+    io.to(to).emit("private_message", msg);
+
+    // Enviar ao remetente
+    io.to(socket.userId).emit("private_message", msg);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("❌ Usuário desconectado:", socket.userId);
+  });
 });
 
-// envia para o destinatário
-io.to(to).emit("private_message", msg);
-
-// envia para quem mandou (para atualizar chat)
-io.to(socket.userId).emit("private_message", msg);
-
-});
-
-socket.on("disconnect", () => {
-console.log("❌ Usuário desconectado:", socket.userId);
-});
-});
-
-// INÍCIO
+// INICIAR SERVIDOR
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-console.log("🔥 Backend rodando na porta", PORT);
+  console.log("🔥 Backend rodando na porta", PORT);
 });
