@@ -20,27 +20,25 @@ const app = express();
 app.use(cors({ origin: "*" }));
 app.use(express.json());
 
-// Rotas HTTP
+// ROTAS HTTP
 app.use("/auth", authRoutes);
 app.use("/users", userRoutes);
 app.use("/messages", messageRoutes);
 app.use("/clientes", clienteRoutes);
 
-// Servidor HTTP
 const server = http.createServer(app);
 
 // SOCKET.IO
 const io = new Server(server, {
   cors: {
     origin: "*",
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+  },
 });
 
-// AUTENTICAÇÃO DO SOCKET (decodifica JWT corretamente)
+// AUTENTICAÇÃO SOCKET.IO
 io.use((socket, next) => {
   const token = socket.handshake.query.token;
-
   if (!token) return next(new Error("NO_TOKEN"));
 
   try {
@@ -52,26 +50,20 @@ io.use((socket, next) => {
   }
 });
 
-// CONEXÃO SOCKET.IO
+// EVENTOS DO SOCKET
 io.on("connection", (socket) => {
   console.log("🔥 Usuário conectado:", socket.userId);
 
   socket.join(socket.userId);
 
-  // Receber e salvar mensagens privadas
   socket.on("private_message", async ({ to, text }) => {
-    console.log("📩 Mensagem recebida:", text);
-
     const msg = await Message.create({
       from: socket.userId,
       to,
-      text
+      text,
     });
 
-    // Enviar ao destinatário
     io.to(to).emit("private_message", msg);
-
-    // Enviar ao remetente
     io.to(socket.userId).emit("private_message", msg);
   });
 
@@ -80,8 +72,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// INICIAR SERVIDOR
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
-  console.log("🔥 Backend rodando na porta", PORT);
+  console.log(`🔥 Backend rodando na porta ${PORT}`);
 });

@@ -1,6 +1,6 @@
-const Cliente = require("../models/Cliente");
+import Cliente from "../models/Cliente.js";
 
-module.exports = {
+export default {
   async criar(req, res) {
     try {
       const cliente = await Cliente.create(req.body);

@@ -1,13 +1,11 @@
-const jwt = require("jsonwebtoken");
+import jwt from "jsonwebtoken";
 
-module.exports = function (req, res, next) {
-  const authHeader = req.headers["authorization"];
-
+export default function auth(req, res, next) {
+  const authHeader = req.headers.authorization;
   if (!authHeader)
     return res.status(401).json({ error: "Token não enviado!" });
 
   const token = authHeader.split(" ")[1];
-
   if (!token)
     return res.status(401).json({ error: "Token inválido!" });
 
@@ -18,4 +16,4 @@ module.exports = function (req, res, next) {
   } catch (err) {
     return res.status(401).json({ error: "Token expirado ou inválido!" });
   }
-};
+}
