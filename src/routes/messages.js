@@ -1,5 +1,5 @@
-const express = require("express");
-const Message = require("../models/Message");
+import express from "express";
+import Message from "../models/Message.js";
 
 const router = express.Router();
 
@@ -11,15 +11,16 @@ router.get("/:from/:to", async (req, res) => {
     const messages = await Message.find({
       $or: [
         { from, to },
-        { from: to, to: from }
-      ]
+        { from: to, to: from },
+      ],
     });
 
     res.json(messages);
+
   } catch (err) {
     console.error(err);
     res.status(500).json({ message: "Erro ao buscar mensagens" });
   }
 });
 
-module.exports = router;
+export default router;
