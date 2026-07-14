@@ -73,6 +73,9 @@ io.on("connection", (socket) => {
 });
 
 const PORT = process.env.PORT || 3000;
+app.get("/", (req, res) => {
+  res.send("Backend funcionando!");
+});
 server.listen(PORT, () => {
   console.log(`🔥 Backend rodando na porta ${PORT}`);
 });
